@@ -23,19 +23,44 @@ las cookies y el middleware.
 ## Levantar todo con Docker
 
 Con Docker Desktop abierto no hace falta instalar PHP, Composer ni MySQL en la
-computadora. Desde la raíz del proyecto:
+computadora.
 
-### 1. Crear la configuración local
+### 1. Descargar el proyecto
+
+Si todavía no lo tenés:
+
+```powershell
+git clone https://github.com/RodrigoCazard/api-simple.git
+cd api-simple
+```
+
+Todos los comandos siguientes se ejecutan desde esa carpeta raíz, donde está
+`compose.yaml`.
+
+### 2. Crear la configuración local
 
 ```powershell
 Copy-Item .env.docker.example .env
-php -r "echo bin2hex(random_bytes(32)), PHP_EOL;"
 ```
 
-El segundo comando genera una clave. Copiala después de `SECRET_KEY=` dentro
-del nuevo archivo `.env`. Este archivo es local y Git lo ignora.
+Generá una clave aleatoria desde PowerShell:
 
-### 2. Construir y levantar los containers
+```powershell
+$bytes = [byte[]]::new(32)
+[Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($bytes)
+[BitConverter]::ToString($bytes).Replace('-', '').ToLower()
+```
+
+Copiá el resultado después de `SECRET_KEY=` dentro del nuevo archivo `.env`:
+
+```env
+SECRET_KEY=aca_va_la_clave_generada
+```
+
+No dejes esa variable vacía. El `.env` contiene la configuración local y Git lo
+ignora para evitar que se publiquen secretos.
+
+### 3. Construir y levantar los containers
 
 ```powershell
 docker compose up --build
@@ -54,14 +79,107 @@ de Apache y MySQL, quedan disponibles:
 Los containers se comunican con MySQL mediante el nombre interno `database`;
 por eso no se cambia `DB_HOST` manualmente.
 
-Para probar nivel 2 con [peticiones.http](nivel-2/peticiones.http), cambiá su
-variable inicial por:
+### 4. Comprobar que estén funcionando
+
+Dejá la terminal anterior abierta y abrí otra en la raíz del proyecto:
+
+```powershell
+docker compose ps
+```
+
+Deberían aparecer `database`, `nivel-1` y `nivel-2` con estado `Up`; la base
+también debería indicar `healthy`.
+
+Abrí estas direcciones en el navegador:
+
+- <http://localhost:8001> — ayuda de nivel 1.
+- <http://localhost:8001/productos> — cinco productos desde nivel 1.
+- <http://localhost:8002> — ayuda de nivel 2.
+- <http://localhost:8002/productos> — cinco productos desde nivel 2.
+
+Los usuarios iniciales son:
+
+| Email | Contraseña | Rol |
+|---|---|---|
+| `admin@utu.edu.uy` | `admin123` | `admin` |
+| `alumno@utu.edu.uy` | `alumno123` | `usuario` |
+
+## Probar nivel 2: cookie HttpOnly
+
+La opción más sencilla es abrir [peticiones.http](nivel-2/peticiones.http) en
+VS Code con la extensión **REST Client**.
+
+Como Docker publica nivel 2 en el puerto 8002, cambiá la variable inicial por:
 
 ```http
 @url = http://localhost:8002
 ```
 
-### 3. Detenerlos
+Después ejecutá los pedidos en este orden:
+
+1. `LOGIN como administrador`.
+2. `MI PERFIL`.
+3. Cualquier creación, modificación o venta de productos.
+4. `LOGOUT`.
+5. `MI PERFIL sin iniciar sesión`, que ahora debe responder `401`.
+
+REST Client conserva automáticamente la cookie creada por el login. El JWT no
+aparece en el JSON ni se copia manualmente porque está dentro de una cookie
+`HttpOnly`.
+
+También se puede comprobar desde PowerShell:
+
+```powershell
+$body = @{
+    email = 'admin@utu.edu.uy'
+    clave = 'admin123'
+} | ConvertTo-Json
+
+Invoke-RestMethod `
+    -Uri 'http://localhost:8002/login' `
+    -Method Post `
+    -ContentType 'application/json' `
+    -Body $body `
+    -SessionVariable apiSession
+
+Invoke-RestMethod `
+    -Uri 'http://localhost:8002/perfil' `
+    -WebSession $apiSession
+```
+
+`-SessionVariable` guarda la cookie recibida y `-WebSession` la vuelve a enviar.
+
+## Probar nivel 1: Bearer token
+
+Nivel 1 devuelve el JWT en el JSON del login. Este ejemplo lo guarda en una
+variable y después lo manda mediante `Authorization`:
+
+```powershell
+$body = @{
+    email = 'admin@utu.edu.uy'
+    clave = 'admin123'
+} | ConvertTo-Json
+
+$login = Invoke-RestMethod `
+    -Uri 'http://localhost:8001/login' `
+    -Method Post `
+    -ContentType 'application/json' `
+    -Body $body
+
+$headers = @{
+    Authorization = "Bearer $($login.datos.token)"
+}
+
+Invoke-RestMethod `
+    -Uri 'http://localhost:8001/perfil' `
+    -Headers $headers
+```
+
+La última respuesta debe contener los datos de `admin@utu.edu.uy`.
+
+## Detener o reiniciar el entorno
+
+Para detener y eliminar los containers y la red:
 
 ```powershell
 docker compose down
@@ -75,6 +193,15 @@ docker compose down -v
 ```
 
 `down -v` elimina los datos de MySQL del entorno Docker y no se puede deshacer.
+
+Si algo falla, mirá los logs:
+
+```powershell
+docker compose logs -f
+```
+
+La explicación detallada de imágenes, containers, puertos, red y volumen está
+en [docs/docker.md](docs/docker.md).
 
 > **Sobre el idioma:** el código (clases, métodos, variables, carpetas) está en
 > **inglés**, que es la convención en programación. Las explicaciones, los

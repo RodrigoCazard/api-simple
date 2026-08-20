@@ -7,7 +7,7 @@
 # "productos", no la encontraría y daría error 404. Nosotros queremos
 # que index.php reciba esa dirección y decida qué hacer.
 #
-# Si usan el servidor de PHP (php -S) esto no hace falta.
+# Si usan el servidor de PHP con index.php como router, esto no hace falta.
 # ==================================================================
 
 <IfModule mod_rewrite.c>
@@ -30,8 +30,8 @@
     RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
 </IfModule>
 
-# Que nadie pueda ver por el navegador los archivos de datos.
-<FilesMatch "\.(json|md|http)$">
+# Que nadie pueda ver por el navegador archivos internos o de configuración.
+<FilesMatch "\.(env|json|lock|sql|md|http)$">
     Require all denied
 </FilesMatch>
 

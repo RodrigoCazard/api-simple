@@ -134,13 +134,13 @@ verificar los tokens.
 
 ```bash
 cd nivel-1
-php -S localhost:8000
+php -S localhost:8000 index.php
 ```
 
 Después entrá a <http://localhost:8000>.
 
-Con XAMPP también podés copiar `nivel-1` dentro de `htdocs` y abrir
-<http://localhost/nivel-1/>.
+También podés levantar los dos niveles y MySQL juntos mediante Docker siguiendo
+la guía del [README principal](../README.md#levantar-todo-con-docker).
 
 ## Validaciones y errores
 

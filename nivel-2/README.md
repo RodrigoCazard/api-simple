@@ -44,12 +44,11 @@ XAMPP con el usuario `root` sin contraseña).
 
 ```bash
 cd nivel-2
-php -S localhost:8000
+php -S localhost:8000 index.php
 ```
 
-**Si copiaste la carpeta entera, ya está**: la librería externa viene incluida en
-`vendor/`. Si esa carpeta no estuviera (por ejemplo, porque bajaste solo el código),
-se recupera con un comando:
+Las librerías externas no se guardan en Git. Después de clonar el proyecto se
+reconstruye la carpeta `vendor/` con:
 
 ```bash
 composer install
@@ -59,7 +58,8 @@ composer install
 
 Entrá a <http://localhost:8000> y te contesta en JSON.
 
-**Con XAMPP:** copiá la carpeta `nivel-2` dentro de `htdocs` y entrá a <http://localhost/nivel-2/>
+También podés levantar nivel 1, nivel 2 y MySQL juntos mediante Docker siguiendo
+la guía del [README principal](../README.md#levantar-todo-con-docker).
 
 **Para probar:** abrí [peticiones.http](peticiones.http) en VS Code con la extensión
 *REST Client* y apretá "Send Request". O copiá los pedidos en Postman.
@@ -74,6 +74,10 @@ Entrá a <http://localhost:8000> y te contesta en JSON.
 Para volver todo al estado inicial: borrá la base y volvé a importar
 [database.sql](database.sql) (`DROP DATABASE utu_demo;` y de nuevo
 `mysql -u root -p < database.sql`).
+
+Con Docker, `docker compose down -v` elimina el volumen de MySQL. La siguiente
+vez que ejecutes `docker compose up --build`, la base se crea nuevamente. Este
+comando borra todos los datos guardados dentro de ese volumen.
 
 ---
 

@@ -20,6 +20,62 @@ endpoints y las decisiones propias de ese nivel. El README de
 [nivel-2](nivel-2/README.md) profundiza en las capas, los DTOs, los validators,
 las cookies y el middleware.
 
+## Levantar todo con Docker
+
+Con Docker Desktop abierto no hace falta instalar PHP, Composer ni MySQL en la
+computadora. Desde la raíz del proyecto:
+
+### 1. Crear la configuración local
+
+```powershell
+Copy-Item .env.docker.example .env
+php -r "echo bin2hex(random_bytes(32)), PHP_EOL;"
+```
+
+El segundo comando genera una clave. Copiala después de `SECRET_KEY=` dentro
+del nuevo archivo `.env`. Este archivo es local y Git lo ignora.
+
+### 2. Construir y levantar los containers
+
+```powershell
+docker compose up --build
+```
+
+La primera ejecución descarga las imágenes, instala las dependencias con
+Composer y crea las tablas con sus datos de ejemplo. Cuando aparezcan los logs
+de Apache y MySQL, quedan disponibles:
+
+| Servicio | Dirección desde la computadora |
+|---|---|
+| Nivel 1 | <http://localhost:8001> |
+| Nivel 2 | <http://localhost:8002> |
+| MySQL | `localhost:3307` |
+
+Los containers se comunican con MySQL mediante el nombre interno `database`;
+por eso no se cambia `DB_HOST` manualmente.
+
+Para probar nivel 2 con [peticiones.http](nivel-2/peticiones.http), cambiá su
+variable inicial por:
+
+```http
+@url = http://localhost:8002
+```
+
+### 3. Detenerlos
+
+```powershell
+docker compose down
+```
+
+Los datos quedan guardados en un volumen. Para borrar también la base y hacer
+que `database.sql` vuelva a ejecutarse desde cero:
+
+```powershell
+docker compose down -v
+```
+
+`down -v` elimina los datos de MySQL del entorno Docker y no se puede deshacer.
+
 > **Sobre el idioma:** el código (clases, métodos, variables, carpetas) está en
 > **inglés**, que es la convención en programación. Las explicaciones, los
 > mensajes y las direcciones de la API quedan en **español**.
@@ -35,3 +91,4 @@ Temas que no cambian entre niveles, compartidos en [docs/](docs):
 | [docs/git-y-gitignore.md](docs/git-y-gitignore.md) | qué archivos van a git y cuáles no, y por qué |
 | [docs/seguridad-sqli-xss.md](docs/seguridad-sqli-xss.md) | inyección SQL y XSS: qué son, cómo se evitan |
 | [docs/uso-de-ia.md](docs/uso-de-ia.md) | cómo usar la IA para aprender (y no para copiar sin entender) |
+| [docs/docker.md](docs/docker.md) | imágenes, containers, Compose, red, volumen y comandos |

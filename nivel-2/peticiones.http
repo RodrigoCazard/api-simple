@@ -7,8 +7,11 @@
 #
 # Si no, copiá los mismos datos en Postman.
 #
-# Antes de empezar, levantá el servidor:
-#     php -S localhost:8000
+# Antes de empezar, levantá el servidor desde nivel-2:
+#     php -S localhost:8000 index.php
+#
+# Si levantaste todo con Docker, nivel-2 está en el puerto 8002:
+#     @url = http://localhost:8002
 ###############################################################
 
 @url = http://localhost:8000

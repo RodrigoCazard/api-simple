@@ -113,6 +113,25 @@ function env(string $key, $default = null)
     return $value === false || $value === '' ? $default : $value;
 }
 
+/**
+ * APP_ENV indica en qué tipo de entorno está ejecutándose la API.
+ *
+ * development: entorno local para aprender y depurar. GET / puede mostrar
+ *              la lista de endpoints y las cuentas de prueba.
+ * production:  servidor público. GET / devuelve información mínima.
+ *
+ * Usamos production como valor por defecto seguro: si alguien se olvida de
+ * configurar APP_ENV en un servidor, la API no publica la ayuda de desarrollo.
+ */
+$appEnv = strtolower((string) env('APP_ENV', 'production'));
+
+// Solo aceptamos estos dos valores para detectar errores de escritura rápido.
+if (!in_array($appEnv, ['development', 'production'], true)) {
+    die('APP_ENV debe ser development o production.');
+}
+
+define('APP_ENV', $appEnv);
+
 // Clave secreta para firmar los tokens. Sale del .env; jamás del código.
 define('SECRET_KEY', env('SECRET_KEY'));
 

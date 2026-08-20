@@ -71,6 +71,7 @@ también está en `config.php`:
 env('SECRET_KEY')                 // el valor, o null si no está
 env('TOKEN_LIFETIME', 3600)       // el valor, o 3600 si no está
 env('FRONTEND_ORIGIN', 'http://localhost:5173')
+env('APP_ENV', 'production')      // entorno; si falta, usa el más seguro
 ```
 
 Y `config.php` los convierte en las constantes que usa el resto del proyecto:
@@ -78,6 +79,28 @@ Y `config.php` los convierte en las constantes que usa el resto del proyecto:
 ```php
 define('SECRET_KEY', env('SECRET_KEY'));
 ```
+
+## Desarrollo y producción con `APP_ENV`
+
+La misma aplicación puede necesitar un comportamiento distinto según dónde
+esté ejecutándose. Para eso se usa:
+
+```env
+APP_ENV=development
+```
+
+- `development` habilita información útil para aprender: `GET /` enumera los
+  endpoints y las cuentas locales de prueba.
+- `production` entrega una respuesta mínima en `GET /` y no publica esos
+  datos.
+
+`config.php` acepta únicamente esos dos valores. Si `APP_ENV` no está definida,
+elige `production`: ante una configuración incompleta es preferible revelar
+menos información.
+
+Esta separación no vuelve segura una ruta por ocultarla. Todas las rutas deben
+seguir validando autenticación, roles y datos de entrada. Además, las cuentas
+de demostración deben eliminarse o reemplazarse antes de publicar la API.
 
 `loadEnv()` no tiene nada específico de esta API — es una función genérica de
 20 líneas. **La pueden copiar tal cual al principio de cualquier otro

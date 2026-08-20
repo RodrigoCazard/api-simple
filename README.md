@@ -1,7 +1,7 @@
 # API REST en PHP — proyecto para aprender
 
-Una API de productos (login con JWT, roles, CRUD completo y MySQL con PDO),
-armada dos veces con distinto nivel de herramientas. Cada carpeta es
+Una API de productos (login, roles, CRUD completo y MySQL), armada tres veces
+con distinto nivel de herramientas. Cada carpeta es
 una app **completamente independiente** en código — copiá cualquiera,
 importale su `database.sql` a un MySQL y anda sola.
 
@@ -9,16 +9,24 @@ importale su `database.sql` a un MySQL y anda sola.
 |---|---|---|---|
 | 1 | [nivel-1/](nivel-1) | `switch` gigante en `index.php` | JWT en `Authorization`; validación en controllers |
 | 2 | [nivel-2/](nivel-2) | clase `Router` + tabla de rutas | cookie HttpOnly; validators y DTOs |
+| 3 | [nivel-3/](nivel-3) | rutas de Laravel 13 | Sanctum SPA: sesión, cookie HttpOnly y CSRF |
 
 La idea es recorrerlos en orden: en nivel 1, `index.php` muestra de forma
 explícita cómo se elige cada controller; nivel 2 muestra por qué conviene sacar
 el enrutado, la autenticación y la validación a componentes específicos cuando
-la aplicación empieza a crecer.
+la aplicación empieza a crecer. Nivel 3 permite comparar ese trabajo manual con
+las herramientas que ya ofrece un framework.
 
 Cada carpeta tiene su propio README con el detalle de cómo levantarla, sus
 endpoints y las decisiones propias de ese nivel. El README de
 [nivel-2](nivel-2/README.md) profundiza en las capas, los DTOs, los validators,
 las cookies y el middleware.
+
+> [!CAUTION]
+> Nivel 3 fue creado con ayuda de inteligencia artificial y puede contener
+> errores. Quien decida usar Laravel debe investigar, experimentar y aprender
+> por su cuenta con la [documentación oficial](https://laravel.com/docs/13.x),
+> no copiar el resultado sin comprenderlo.
 
 ## Levantar todo con Docker
 
@@ -55,10 +63,38 @@ Copiá el resultado después de `SECRET_KEY=` dentro del nuevo archivo `.env`:
 
 ```env
 SECRET_KEY=aca_va_la_clave_generada
+APP_ENV=development
+```
+
+Laravel utiliza otra clave para cifrado general. Generala también desde
+PowerShell; no hace falta instalar Laravel localmente:
+
+```powershell
+$laravelBytes = [byte[]]::new(32)
+[Security.Cryptography.RandomNumberGenerator]::Create().GetBytes($laravelBytes)
+'base64:' + [Convert]::ToBase64String($laravelBytes)
+```
+
+Copiá el resultado completo (`base64:...`) en:
+
+```env
+LARAVEL_APP_KEY=base64:resultado_generado
 ```
 
 No dejes esa variable vacía. El `.env` contiene la configuración local y Git lo
 ignora para evitar que se publiquen secretos.
+
+`APP_ENV` distingue el entorno donde corre la API:
+
+- `development`: pensado para estudiar y depurar; `GET /` muestra endpoints y
+  cuentas de prueba.
+- `production`: pensado para un servidor público; `GET /` responde solamente
+  que la API está funcionando.
+
+Antes de publicar la aplicación cambiá `APP_ENV=production`, eliminá las
+cuentas de demostración, usá credenciales reales, activá HTTPS y configurá
+`LARAVEL_SESSION_SECURE=true`. Ocultar la ayuda de `/` no reemplaza los
+controles de autenticación y permisos de cada endpoint.
 
 ### 3. Construir y levantar los containers
 
@@ -74,6 +110,7 @@ de Apache y MySQL, quedan disponibles:
 |---|---|
 | Nivel 1 | <http://localhost:8001> |
 | Nivel 2 | <http://localhost:8002> |
+| Nivel 3 (Laravel) | <http://localhost:8003> |
 | MySQL | `localhost:3307` |
 
 Los containers se comunican con MySQL mediante el nombre interno `database`;
@@ -90,12 +127,14 @@ docker compose ps
 Deberían aparecer `database`, `nivel-1` y `nivel-2` con estado `Up`; la base
 también debería indicar `healthy`.
 
-Abrí estas direcciones en el navegador:
+Con `APP_ENV=development`, abrí estas direcciones en el navegador:
 
 - <http://localhost:8001> — ayuda de nivel 1.
 - <http://localhost:8001/productos> — cinco productos desde nivel 1.
 - <http://localhost:8002> — ayuda de nivel 2.
 - <http://localhost:8002/productos> — cinco productos desde nivel 2.
+- <http://localhost:8003> — ayuda de Laravel y advertencia educativa.
+- <http://localhost:8003/api/productos> — productos desde nivel 3.
 
 Los usuarios iniciales son:
 
@@ -103,6 +142,15 @@ Los usuarios iniciales son:
 |---|---|---|
 | `admin@utu.edu.uy` | `admin123` | `admin` |
 | `alumno@utu.edu.uy` | `alumno123` | `usuario` |
+
+## Probar nivel 3: Sanctum SPA con sesión y CSRF
+
+Nivel 3 no devuelve un token. Primero hay que pedir
+`/sanctum/csrf-cookie`, después iniciar sesión y conservar las cookies que
+Laravel envía con `Set-Cookie`. La cookie `nivel_3_session` es `HttpOnly`.
+
+El flujo completo para Axios, PowerShell y REST Client está explicado en el
+[README de nivel 3](nivel-3/README.md#autenticación-spa-con-sanctum).
 
 ## Probar nivel 2: cookie HttpOnly
 

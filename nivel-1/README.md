@@ -118,8 +118,10 @@ En Windows CMD:
 copy .env.example .env
 ```
 
-Revisá `DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASSWORD` y `SECRET_KEY`. El `.env`
-contiene configuración local y no se sube a Git.
+Revisá `DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `SECRET_KEY` y `APP_ENV`.
+Usá `APP_ENV=development` para ver la ayuda educativa en `/`; en un servidor
+público usá `APP_ENV=production`. El `.env` contiene configuración local y no
+se sube a Git.
 
 ### 3. Instalar las dependencias
 
@@ -139,7 +141,7 @@ php -S localhost:8000 index.php
 
 Después entrá a <http://localhost:8000>.
 
-También podés levantar los dos niveles y MySQL juntos mediante Docker siguiendo
+También podés levantar los tres niveles y MySQL juntos mediante Docker siguiendo
 la guía del [README principal](../README.md#levantar-todo-con-docker).
 
 ## Validaciones y errores

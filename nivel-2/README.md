@@ -38,7 +38,8 @@ copy .env.example .env      # Windows
 
 Revisá que `DB_HOST`, `DB_NAME`, `DB_USER` y `DB_PASSWORD` coincidan con
 tu MySQL (los valores por defecto sirven para una instalación típica de
-XAMPP con el usuario `root` sin contraseña).
+XAMPP con el usuario `root` sin contraseña). Usá `APP_ENV=development` para
+ver la ayuda educativa en `/`; antes de publicar, cambialo a `production`.
 
 **3. Levantala:**
 
@@ -58,7 +59,7 @@ composer install
 
 Entrá a <http://localhost:8000> y te contesta en JSON.
 
-También podés levantar nivel 1, nivel 2 y MySQL juntos mediante Docker siguiendo
+También podés levantar los tres niveles y MySQL juntos mediante Docker siguiendo
 la guía del [README principal](../README.md#levantar-todo-con-docker).
 
 **Para probar:** abrí [peticiones.http](peticiones.http) en VS Code con la extensión

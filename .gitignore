@@ -1,0 +1,7 @@
+# Secretos y config local: cada máquina tiene el suyo.
+# (sin "/" adelante: aplica tanto a nivel-1/.env como a nivel-2/.env)
+.env
+
+# Librerías de Composer: se reconstruyen con "composer install".
+# (idem, aplica a nivel-1/vendor/ y a nivel-2/vendor/)
+vendor/
